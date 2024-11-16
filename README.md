@@ -225,7 +225,7 @@ vsce publish
 
 ## Release Notes
 
-See [CHANGELOG.md](CHANGELOG.md) for detailed release notes.
+See [CHANGELOG](CHANGELOG) for detailed release notes.
 
 ### 0.0.2
 
