@@ -1,0 +1,11 @@
+dist/
+out/
+node_modules/
+.vscode/
+.vscode-test/
+.vscode-test.mjs
+*.vsix
+.DS_Store
+coverage/
+.nyc_output/
+.history/

@@ -1,0 +1,9 @@
+# Changelog
+
+## 0.0.2 - Initial Release
+
+- Auto-reopen of last terminal
+- Preservation of terminal state
+- Status bar integration
+- Command tracking
+- Configuration options
