@@ -2,7 +2,7 @@
   "name": "terminal-auto-reopen",
   "displayName": "Terminal Auto-reopen",
   "description": "Automatically reopens a terminal when the last one is closed",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "repository": {
     "type": "git",
     "url": "https://github.com/riordanmb/terminal-auto-reopen.git"
