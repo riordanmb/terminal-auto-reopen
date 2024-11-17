@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
+import { Terminal, EventEmitter } from 'vscode';
 
 interface TerminalState {
     name: string;
@@ -50,11 +51,17 @@ export function activate(context: vscode.ExtensionContext) {
 
     // Store terminal state in history
     function storeTerminalState(terminal: vscode.Terminal) {
+        const creationOptions = terminal.creationOptions as vscode.TerminalOptions;
         const state: TerminalState = {
             name: terminal.name,
-            cwd: terminal.processId ? undefined : terminal.creationOptions.cwd?.toString(),
-            shellPath: terminal.processId ? undefined : terminal.creationOptions.shellPath?.toString(),
-            environmentVariables: terminal.processId ? undefined : terminal.creationOptions.env
+            cwd: creationOptions.cwd?.toString(),
+            shellPath: creationOptions.shellPath?.toString(),
+            environmentVariables: creationOptions.env ? 
+                Object.entries(creationOptions.env).reduce((acc, [key, value]) => {
+                    acc[key] = value?.toString() || '';
+                    return acc;
+                }, {} as { [key: string]: string }) 
+                : undefined,
         };
         
         terminalHistory.states.unshift(state);
@@ -182,17 +189,19 @@ export function activate(context: vscode.ExtensionContext) {
             
             // Track commands in terminal
             if (vscode.workspace.getConfiguration('terminalReopen').get('trackCommands')) {
-                const writeEmitter = new vscode.EventEmitter<string>();
-                context.subscriptions.push(
-                    terminal.onDidWriteLine(line => {
-                        if (line.trim() && !line.startsWith('>')) {
-                            const state = terminalHistory.states.find(s => s.name === terminal.name);
-                            if (state) {
-                                state.lastCommand = line.trim();
+                const state = terminalHistory.states.find(s => s.name === terminal.name);
+                if (state) {
+                    // Instead of trying to track write events (which isn't available in the API),
+                    // we'll store the state when the terminal is created
+                    context.subscriptions.push(
+                        vscode.window.onDidCloseTerminal(closedTerminal => {
+                            if (closedTerminal === terminal && state) {
+                                // Update the last known state when the terminal closes
+                                state.lastCommand = undefined; // We can't reliably get the last command
                             }
-                        }
-                    })
-                );
+                        })
+                    );
+                }
             }
         })
     );

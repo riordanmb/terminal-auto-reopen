@@ -12,6 +12,7 @@
     "vscode": "^1.80.0"
   },
   "license": "MIT",
+  "icon": "icon.png",
   "keywords": [
     "terminal",
     "auto-reopen",
@@ -24,15 +25,63 @@
   "categories": [
     "Other"
   ],
-  "activationEvents": [],
+  "activationEvents": [
+    "onStartupFinished"
+  ],
   "main": "./dist/extension.js",
   "contributes": {
     "commands": [
       {
-        "command": "terminal-auto-reopen.helloWorld",
-        "title": "Hello World"
+        "command": "terminalReopen.toggle",
+        "title": "Toggle Terminal Auto-reopen"
+      },
+      {
+        "command": "terminalReopen.showMenu",
+        "title": "Show Terminal Auto-reopen Menu"
+      },
+      {
+        "command": "terminalReopen.restoreFromHistory",
+        "title": "Restore Terminal from History"
+      },
+      {
+        "command": "terminalReopen.openSettings",
+        "title": "Open Terminal Auto-reopen Settings"
+      },
+      {
+        "command": "terminalReopen.clearHistory",
+        "title": "Clear Terminal History"
       }
-    ]
+    ],
+    "configuration": {
+      "title": "Terminal Auto-reopen",
+      "properties": {
+        "terminalReopen.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable/disable automatic terminal reopening"
+        },
+        "terminalReopen.preserveState": {
+          "type": "boolean",
+          "default": true,
+          "description": "Preserve the state of the last closed terminal"
+        },
+        "terminalReopen.showStatusBar": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show the number of open terminals in the status bar"
+        },
+        "terminalReopen.reopenDelay": {
+          "type": "number",
+          "default": 1000,
+          "description": "Delay (in milliseconds) before reopening a terminal"
+        },
+        "terminalReopen.maxHistorySize": {
+          "type": "number",
+          "default": 5,
+          "description": "Maximum number of terminal configurations to keep in history"
+        }
+      }
+    }
   },
   "scripts": {
     "vscode:prepublish": "yarn run package",
@@ -46,7 +95,7 @@
     "test": "vscode-test"
   },
   "devDependencies": {
-    "@types/vscode": "^1.95.0",
+    "@types/vscode": "^1.80.0",
     "@types/mocha": "^10.0.9",
     "@types/node": "20.x",
     "@typescript-eslint/eslint-plugin": "^8.10.0",
