@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.0.3 - Fix terminal count bug
+
+- Fixed an issue where the terminal count was not updated correctly if a terminal was active before the extension was activated
+- Regularly check terminal count against active terminals to handle edge cases
+
 ## 0.0.2 - Initial Release
 
 - Auto-reopen of last terminal

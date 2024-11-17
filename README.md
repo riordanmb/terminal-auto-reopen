@@ -133,7 +133,7 @@ The extension preserves:
    - Verify trackCommands is enabled in settings
    - Some shell types may not support command tracking
   
-# Development
+## Development
 
 ### Prerequisites
 

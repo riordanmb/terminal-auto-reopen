@@ -1,12 +1,11 @@
 import * as vscode from 'vscode';
-import * as path from 'path';
-import { Terminal, EventEmitter } from 'vscode';
 
 interface TerminalState {
     name: string;
     cwd?: string;
     shellPath?: string;
-    environmentVariables?: { [key: string]: string };
+    shellArgs?: string[];
+    env?: { [key: string]: string };
     lastCommand?: string;
 }
 
@@ -16,7 +15,8 @@ interface TerminalHistory {
 }
 
 export function activate(context: vscode.ExtensionContext) {
-    let terminalCount = 0;
+    // Initialize with current terminals count
+    let terminalCount = vscode.window.terminals.length;
     const terminalHistory: TerminalHistory = {
         states: [],
         maxSize: 5
@@ -32,14 +32,24 @@ export function activate(context: vscode.ExtensionContext) {
     statusBarItem.command = 'terminalReopen.showMenu';
     context.subscriptions.push(statusBarItem);
     
-    // Update status bar with current terminal count and custom icon based on state
+    // Sync terminal count with actual terminals
+    function syncTerminalCount() {
+        const actualCount = vscode.window.terminals.length;
+        if (terminalCount !== actualCount) {
+            terminalCount = actualCount;
+            updateStatusBar();
+        }
+    }
+
+    // Update status bar with current terminal count
     function updateStatusBar() {
         const config = vscode.workspace.getConfiguration('terminalReopen');
         if (config.get('showStatusBar')) {
             const isEnabled = config.get('enabled');
-            statusBarItem.text = `${isEnabled ? '$(terminal)' : '$(terminal-powershell)'} ${terminalCount}`;
+            statusBarItem.text = `$(terminal) ${terminalCount}`;
             statusBarItem.tooltip = `${terminalCount} terminal${terminalCount === 1 ? '' : 's'} open\nClick for options`;
             statusBarItem.backgroundColor = undefined;
+            
             if (terminalCount === 0 && isEnabled) {
                 statusBarItem.backgroundColor = new vscode.ThemeColor('statusBarItem.warningBackground');
             }
@@ -49,198 +59,118 @@ export function activate(context: vscode.ExtensionContext) {
         }
     }
 
-    // Store terminal state in history
-    function storeTerminalState(terminal: vscode.Terminal) {
-        const creationOptions = terminal.creationOptions as vscode.TerminalOptions;
+    // Save terminal state
+    function saveTerminalState(terminal: vscode.Terminal) {
         const state: TerminalState = {
             name: terminal.name,
-            cwd: creationOptions.cwd?.toString(),
-            shellPath: creationOptions.shellPath?.toString(),
-            environmentVariables: creationOptions.env ? 
-                Object.entries(creationOptions.env).reduce((acc, [key, value]) => {
-                    acc[key] = value?.toString() || '';
-                    return acc;
-                }, {} as { [key: string]: string }) 
-                : undefined,
+            // Note: These might be undefined as they're not always accessible
+            cwd: (terminal as any).cwd,
+            shellPath: (terminal as any).shellPath,
+            shellArgs: (terminal as any).shellArgs,
+            env: (terminal as any).env
         };
+
+        // Remove old state if exists
+        terminalHistory.states = terminalHistory.states.filter(s => s.name !== terminal.name);
         
+        // Add new state
         terminalHistory.states.unshift(state);
+        
+        // Maintain history size
         if (terminalHistory.states.length > terminalHistory.maxSize) {
             terminalHistory.states.pop();
         }
-        
-        // Save history to workspace state
-        context.workspaceState.update('terminalHistory', terminalHistory.states);
     }
 
-    // Create terminal from saved state
-    async function createTerminalFromState(state: TerminalState) {
+    // Auto reopen terminal
+    function autoReopenTerminal() {
+        const config = vscode.workspace.getConfiguration('terminalReopen');
+        if (!config.get('enabled')) {
+            return;
+        }
+
+        const lastState = terminalHistory.states[0];
         const options: vscode.TerminalOptions = {
-            name: state.name
+            name: lastState?.name || 'Terminal',
+            shellPath: lastState?.shellPath,
+            shellArgs: lastState?.shellArgs,
+            cwd: lastState?.cwd,
+            env: lastState?.env
         };
-        
-        if (state.cwd) {
-            options.cwd = state.cwd;
-        }
-        
-        if (state.shellPath) {
-            options.shellPath = state.shellPath;
-        }
-        
-        if (state.environmentVariables) {
-            options.env = state.environmentVariables;
-        }
-        
-        const terminal = vscode.window.createTerminal(options);
-        terminal.show();
-        
-        // If there's a last command, optionally execute it
-        if (state.lastCommand && vscode.workspace.getConfiguration('terminalReopen').get('restoreLastCommand')) {
-            await new Promise(resolve => setTimeout(resolve, 1000)); // Wait for terminal to initialize
-            terminal.sendText(state.lastCommand);
-        }
-        
-        return terminal;
+
+        vscode.window.createTerminal(options);
     }
 
-    // Register command to show quick pick menu
+    // Register commands
     context.subscriptions.push(
-        vscode.commands.registerCommand('terminalReopen.showMenu', async () => {
-            const items = [
-                {
-                    label: '$(gear) Toggle Auto-reopen',
-                    description: vscode.workspace.getConfiguration('terminalReopen').get('enabled') ? 'Enabled' : 'Disabled',
-                    command: 'terminalReopen.toggle'
-                },
-                {
-                    label: '$(history) Restore Previous Terminal',
-                    description: 'Choose from history',
-                    command: 'terminalReopen.restoreFromHistory'
-                },
-                {
-                    label: '$(settings) Open Settings',
-                    command: 'terminalReopen.openSettings'
-                },
-                {
-                    label: '$(clear-all) Clear Terminal History',
-                    command: 'terminalReopen.clearHistory'
-                }
-            ];
-            
-            const selected = await vscode.window.showQuickPick(items, {
-                placeHolder: 'Terminal Auto-reopen Options'
-            });
-            
-            if (selected) {
-                vscode.commands.executeCommand(selected.command);
-            }
-        })
-    );
-
-    // Register command to restore from history
-    context.subscriptions.push(
-        vscode.commands.registerCommand('terminalReopen.restoreFromHistory', async () => {
-            const historyItems = terminalHistory.states.map((state, index) => ({
-                label: state.name,
-                description: state.cwd ? `CWD: ${state.cwd}` : undefined,
-                detail: `Shell: ${path.basename(state.shellPath || 'default')}`,
-                state: state
-            }));
-            
-            const selected = await vscode.window.showQuickPick(historyItems, {
-                placeHolder: 'Select terminal configuration to restore'
-            });
-            
-            if (selected) {
-                createTerminalFromState(selected.state);
-            }
-        })
-    );
-
-    // Register command to open settings
-    context.subscriptions.push(
-        vscode.commands.registerCommand('terminalReopen.openSettings', () => {
-            vscode.commands.executeCommand('workbench.action.openSettings', '@ext:terminalReopen');
-        })
-    );
-
-    // Register command to clear history
-    context.subscriptions.push(
-        vscode.commands.registerCommand('terminalReopen.clearHistory', async () => {
-            const confirmed = await vscode.window.showWarningMessage(
-                'Clear terminal history?',
-                'Yes',
-                'No'
+        vscode.commands.registerCommand('terminalReopen.toggle', () => {
+            const config = vscode.workspace.getConfiguration('terminalReopen');
+            const currentValue = config.get('enabled');
+            config.update('enabled', !currentValue, true);
+            vscode.window.showInformationMessage(
+                `Terminal Auto-reopen ${!currentValue ? 'enabled' : 'disabled'}`
             );
-            
-            if (confirmed === 'Yes') {
-                terminalHistory.states = [];
-                context.workspaceState.update('terminalHistory', []);
-                vscode.window.showInformationMessage('Terminal history cleared');
-            }
+            updateStatusBar();
         })
     );
 
-    // Track terminal creation
+    // Terminal event handlers
     context.subscriptions.push(
         vscode.window.onDidOpenTerminal(terminal => {
             terminalCount++;
             updateStatusBar();
-            
-            // Track commands in terminal
-            if (vscode.workspace.getConfiguration('terminalReopen').get('trackCommands')) {
-                const state = terminalHistory.states.find(s => s.name === terminal.name);
-                if (state) {
-                    // Instead of trying to track write events (which isn't available in the API),
-                    // we'll store the state when the terminal is created
-                    context.subscriptions.push(
-                        vscode.window.onDidCloseTerminal(closedTerminal => {
-                            if (closedTerminal === terminal && state) {
-                                // Update the last known state when the terminal closes
-                                state.lastCommand = undefined; // We can't reliably get the last command
-                            }
-                        })
-                    );
-                }
-            }
+            saveTerminalState(terminal);
         })
     );
 
-    // Track terminal disposal with delayed auto-reopen
     context.subscriptions.push(
         vscode.window.onDidCloseTerminal(terminal => {
             terminalCount--;
             updateStatusBar();
-            storeTerminalState(terminal);
             
-            // Clear any existing auto-reopen timer
-            if (autoReopenTimer) {
-                clearTimeout(autoReopenTimer);
-            }
-            
-            // If no terminals are left and auto-reopen is enabled, start timer
-            if (terminalCount === 0 && vscode.workspace.getConfiguration('terminalReopen').get('enabled')) {
-                const delay = vscode.workspace.getConfiguration('terminalReopen').get('reopenDelay') as number;
+            // Only auto-reopen if this was the last terminal
+            if (terminalCount === 0) {
+                const config = vscode.workspace.getConfiguration('terminalReopen');
+                const delay = config.get('reopenDelay') as number || 1000;
+                
+                // Clear existing timer if any
+                if (autoReopenTimer) {
+                    clearTimeout(autoReopenTimer);
+                }
+                
+                // Set new timer
                 autoReopenTimer = setTimeout(() => {
-                    const state = terminalHistory.states[0];
-                    if (state) {
-                        createTerminalFromState(state);
-                    } else {
-                        vscode.window.createTerminal('Auto-restored Terminal');
+                    // Double check terminal count before reopening
+                    if (vscode.window.terminals.length === 0) {
+                        autoReopenTerminal();
                     }
                 }, delay);
             }
         })
     );
-    
-    // Load saved history on activation
-    const savedHistory = context.workspaceState.get<TerminalState[]>('terminalHistory');
-    if (savedHistory) {
-        terminalHistory.states = savedHistory;
-    }
-    
-    // Initialize status bar
+
+    // Sync terminal count on window state changes
+    context.subscriptions.push(
+        vscode.window.onDidChangeWindowState(() => {
+            syncTerminalCount();
+        })
+    );
+
+    // Periodic sync to handle edge cases
+    const syncInterval = setInterval(() => {
+        syncTerminalCount();
+    }, 30000); // Sync every 30 seconds
+
+    // Add cleanup for sync interval
+    context.subscriptions.push({
+        dispose: () => clearInterval(syncInterval)
+    });
+
+    // Initial status bar update
+    syncTerminalCount();
     updateStatusBar();
 }
 
-export function deactivate() {}
+export function deactivate() {
+    // Cleanup will be handled by disposables
+}
