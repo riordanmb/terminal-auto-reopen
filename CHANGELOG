@@ -1,14 +1,13 @@
 # Changelog
 
-## 0.0.3 - Fix terminal count bug
+## 0.0.4 - Initial Release
 
-- Fixed an issue where the terminal count was not updated correctly if a terminal was active before the extension was activated
-- Regularly check terminal count against active terminals to handle edge cases
-
-## 0.0.2 - Initial Release
-
+- Initial public release with basic functionality
 - Auto-reopen of last terminal
-- Preservation of terminal state
-- Status bar integration
-- Command tracking
-- Configuration options
+- Status bar integration with terminal count
+- Basic configuration option to enable/disable
+- Full test suite
+
+## 0.0.1-0.0.3
+
+- Removed from VS Code Marketplace because of breaking bugs

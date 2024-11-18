@@ -9,3 +9,9 @@ node_modules/
 coverage/
 .nyc_output/
 .history/
+logs/
+*.log
+.env
+.env.local
+tmp/
+*.tmp

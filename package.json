@@ -1,112 +1,57 @@
 {
-  "name": "terminal-auto-reopen",
-  "displayName": "Terminal Auto-reopen",
-  "description": "Automatically reopens a terminal when the last one is closed",
-  "version": "0.0.3",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/riordanmb/terminal-auto-reopen.git"
-  },
-  "publisher": "michael-riordan",
-  "engines": {
-    "vscode": "^1.80.0"
-  },
-  "license": "MIT",
-  "icon": "icon.png",
-  "keywords": [
-    "terminal",
-    "auto-reopen",
-    "integrated terminal",
-    "terminal auto reopen",
-    "terminal history",
-    "terminal state",
-    "terminal commandtracking"
-  ],
-  "categories": [
-    "Other"
-  ],
-  "activationEvents": [
-    "onStartupFinished",
-    "onTerminal"
-  ],
-  "main": "./dist/extension.js",
-  "contributes": {
-    "commands": [
-      {
-        "command": "terminalReopen.toggle",
-        "title": "Toggle Terminal Auto-reopen"
-      },
-      {
-        "command": "terminalReopen.showMenu",
-        "title": "Show Terminal Auto-reopen Menu"
-      },
-      {
-        "command": "terminalReopen.restoreFromHistory",
-        "title": "Restore Terminal from History"
-      },
-      {
-        "command": "terminalReopen.openSettings",
-        "title": "Open Terminal Auto-reopen Settings"
-      },
-      {
-        "command": "terminalReopen.clearHistory",
-        "title": "Clear Terminal History"
-      }
+    "name": "terminal-auto-reopen",
+    "displayName": "Terminal Auto Reopen",
+    "publisher": "michael-riordan",
+    "version": "0.0.4",
+    "engines": {
+        "vscode": "^1.85.0"
+    },
+    "activationEvents": [
+        "onStartupFinished"
     ],
-    "configuration": {
-      "title": "Terminal Auto-reopen",
-      "properties": {
-        "terminalReopen.enabled": {
-          "type": "boolean",
-          "default": true,
-          "description": "Enable/disable automatic terminal reopening"
-        },
-        "terminalReopen.preserveState": {
-          "type": "boolean",
-          "default": true,
-          "description": "Preserve the state of the last closed terminal"
-        },
-        "terminalReopen.showStatusBar": {
-          "type": "boolean",
-          "default": true,
-          "description": "Show the number of open terminals in the status bar"
-        },
-        "terminalReopen.reopenDelay": {
-          "type": "number",
-          "default": 1000,
-          "description": "Delay (in milliseconds) before reopening a terminal"
-        },
-        "terminalReopen.maxHistorySize": {
-          "type": "number",
-          "default": 5,
-          "description": "Maximum number of terminal configurations to keep in history"
+    "main": "./dist/extension.js",
+    "scripts": {
+        "vscode:prepublish": "npm run compile",
+        "compile": "tsc -p ./",
+        "watch": "tsc -watch -p ./",
+        "pretest": "npm run compile",
+        "test": "node ./dist/test/runTests.js"
+    },
+    "devDependencies": {
+        "@types/mocha": "^10.0.6",
+        "@types/node": "18.x",
+        "@types/sinon": "^17.0.3",
+        "@types/vscode": "^1.85.0",
+        "@typescript-eslint/eslint-plugin": "^6.13.1",
+        "@typescript-eslint/parser": "^6.13.1",
+        "@vscode/test-cli": "latest",
+        "@vscode/test-electron": "^2.3.8",
+        "eslint": "^8.54.0",
+        "glob": "^10.3.10",
+        "mocha": "^10.2.0",
+        "rimraf": "^5.0.5",
+        "sinon": "^19.0.2",
+        "ts-loader": "^9.5.1",
+        "typescript": "^5.3.2",
+        "webpack": "^5.96.1",
+        "webpack-cli": "^5.1.4"
+    },
+    "contributes": {
+        "commands": [
+            {
+                "command": "terminalReopen.toggle",
+                "title": "Toggle Terminal Auto-reopen"
+            }
+        ],
+        "configuration": {
+            "title": "Terminal Auto-reopen",
+            "properties": {
+                "terminalReopen.enabled": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Enable/disable terminal auto-reopen"
+                }
+            }
         }
-      }
     }
-  },
-  "scripts": {
-    "vscode:prepublish": "yarn run package",
-    "compile": "webpack",
-    "watch": "webpack --watch",
-    "package": "webpack --mode production --devtool hidden-source-map",
-    "compile-tests": "tsc -p . --outDir out",
-    "watch-tests": "tsc -p . -w --outDir out",
-    "pretest": "yarn run compile-tests && yarn run compile && yarn run lint",
-    "lint": "eslint src",
-    "test": "vscode-test"
-  },
-  "devDependencies": {
-    "@types/vscode": "^1.80.0",
-    "@types/mocha": "^10.0.9",
-    "@types/node": "20.x",
-    "@typescript-eslint/eslint-plugin": "^8.10.0",
-    "@typescript-eslint/parser": "^8.7.0",
-    "eslint": "^9.13.0",
-    "typescript": "^5.6.3",
-    "ts-loader": "^9.5.1",
-    "webpack": "^5.95.0",
-    "webpack-cli": "^5.1.4",
-    "@vscode/test-cli": "^0.0.10",
-    "@vscode/test-electron": "^2.4.1"
-  }
 }

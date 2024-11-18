@@ -1,76 +1,58 @@
 # Terminal Auto-reopen for VS Code
 
-Never lose your terminal workflow again! This extension automatically manages your VS Code integrated terminals, ensuring you always have a terminal available when you need it.
+Never lose your terminal workflow again! This extension automatically reopens a terminal when the last one is closed in VS Code.
 
 ## Features
 
 ### 🔄 Auto-reopen
 
 - Automatically reopens a new terminal when the last one is closed
-- Preserves previous terminal settings (working directory, shell type, environment variables)
-- Configurable delay to prevent accidental reopens
-
-### 📝 Terminal History
-
-- Maintains history of recent terminal configurations
-- Allows quick restoration of previous terminal setups
-- Persists across VS Code sessions
-
-### 🎯 Command Tracking
-
-- Optionally tracks the last command executed in each terminal
-- Ability to restore terminals with their last command
-- Helps maintain context when switching between tasks
+- Configurable enable/disable toggle
+- Status bar indicator showing number of open terminals
 
 ### 📊 Status Bar Integration
 
 - Shows current number of open terminals
-- Quick access menu for common actions
-- Visual indicators for different states
-- Warning indicator when no terminals are open
+- Visual warning indicator when no terminals are open
+- Displays terminal count and state
 
 ## Installation
 
 1. Open VS Code
 2. Press `Ctrl+P` (`Cmd+P` on macOS)
-3. Type `ext install terminal-reopen`
+3. Type `ext install terminal-auto-reopen`
 4. Press Enter
 
 ## Usage
 
 ### Basic Usage
 
-The extension works automatically once installed. When you close your last terminal, a new one will be opened with the same configuration.
+The extension works automatically once installed. When you close your last terminal, a new one will be opened automatically.
 
 ### Status Bar
 
-Click the terminal counter in the status bar (📟 2) to access quick actions:
+The status bar shows:
 
-- Toggle Auto-reopen
-- Restore Previous Terminal
-- Open Settings
-- Clear Terminal History
+- Number of open terminals (📟 2)
+- Warning indicator when no terminals are open
+- Terminal count updates in real-time
 
 ### Commands
 
 Access these commands through the Command Palette (`Ctrl+Shift+P` or `Cmd+Shift+P`):
 
 - `Terminal Auto-reopen: Toggle` - Enable/disable automatic reopening
-- `Terminal Auto-reopen: Show Menu` - Display quick actions menu
-- `Terminal Auto-reopen: Restore from History` - Choose a previous terminal configuration
-- `Terminal Auto-reopen: Clear History` - Reset terminal history
-- `Terminal Auto-reopen: Open Settings` - Configure extension settings
 
 ### Keyboard Shortcuts
 
-You can assign keyboard shortcuts to any command in VS Code's Keyboard Shortcuts editor.
+You can assign keyboard shortcuts to the toggle command in VS Code's Keyboard Shortcuts editor.
 
 Example keybindings.json entry:
 
 ```json
 {
     "key": "ctrl+k ctrl+t",
-    "command": "terminalReopen.showMenu"
+    "command": "terminalReopen.toggle"
 }
 ```
 
@@ -80,59 +62,10 @@ Access settings through VS Code's Settings UI or settings.json:
 
 ```json
 {
-    "terminalReopen.enabled": true,                 // Enable/disable auto-reopen
-    "terminalReopen.preserveState": true,           // Keep terminal configurations
-    "terminalReopen.showStatusBar": true,           // Show status bar indicator
-    "terminalReopen.reopenDelay": 1000,             // Delay before reopening (ms)
-    "terminalReopen.trackCommands": true,           // Track last command
-    "terminalReopen.restoreLastCommand": false,     // Auto-execute last command
-    "terminalReopen.maxHistorySize": 5              // Number of configurations to remember
+    "terminalReopen.enabled": true  // Enable/disable auto-reopen
 }
 ```
 
-## Features in Detail
-
-### Terminal State Preservation
-
-The extension preserves:
-
-- Working directory (CWD)
-- Shell type
-- Environment variables
-- Terminal name
-- Last executed command (optional)
-
-### History Management
-
-- Maintains a configurable number of recent terminal configurations
-- Persists across VS Code sessions
-- Quick restore through command palette or status bar menu
-- Clear history option for fresh start
-
-### Visual Feedback
-
-- Different status bar icons for enabled/disabled states
-- Warning indicator when no terminals are open
-- Clear visual feedback for actions
-- Intuitive quick pick menus
-
-## Troubleshooting
-
-### Common Issues
-
-1. **Terminal doesn't reopen automatically**
-   - Check if the extension is enabled in settings
-   - Verify the reopenDelay setting isn't too high
-   - Ensure VS Code has necessary permissions
-
-2. **Working directory not preserved**
-   - Some shell types may not support CWD preservation
-   - Try using absolute paths in terminal commands
-
-3. **Last command not tracked**
-   - Verify trackCommands is enabled in settings
-   - Some shell types may not support command tracking
-  
 ## Development
 
 ### Prerequisites
@@ -147,22 +80,22 @@ The extension preserves:
 ### Setup
 
 1. Clone the repository:
-
+   
 ```bash
-git clone [repository-url]
-cd inline-python-package-installer
+git clone https://github.com/riordanmb/terminal-auto-reopen.git
+cd terminal-auto-reopen
 ```
 
 1. Install dependencies:
-
+   
 ```bash
 npm install
 # or
 yarn install
 ```
 
-2. Open in VS Code:
-
+1. Open in VS Code:
+   
 ```bash
 code .
 ```
@@ -193,7 +126,7 @@ npm run watch-tests
 yarn watch-tests
 ```
 
-3. Open the Testing view and run tests
+1. Open the Testing view and run tests
 
 ## Publishing
 
@@ -205,7 +138,7 @@ yarn watch-tests
 vsce package
 ```
 
-4. Publish to marketplace:
+1. Publish to marketplace:
 
 ```bash
 vsce publish
@@ -227,11 +160,12 @@ vsce publish
 
 See [CHANGELOG](CHANGELOG) for detailed release notes.
 
-### 0.0.2
+### 0.0.4
 
 - Initial release with basic functionality
 - Auto-reopen of last terminal
-- Preservation of terminal state
+- Status bar integration with terminal count
+- Basic configuration option to enable/disable
 
 ## Support
 
